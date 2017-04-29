@@ -35,11 +35,9 @@ class ServerDataManager:
 
                 if len(message.attachments) > 0 or matcher:
                     await client.send_message(message.channel, "do not post images & links here 🚓")
-                    print(message.content)
                     self.police_refractory += 1
             else:
                 self.police_refractory -= 1
-            
 
 class ServerData:
     def __init__(self):
