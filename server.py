@@ -1,21 +1,51 @@
 import json
 import sys
+import re
 import asyncio
 import discord
 import os.path
 
 class ServerDataManager:
     def __init__(self):
-        pass
+        self.police_refractory = 0
+
     async def ask(self, server_data, client, service, message):
-        if message.content.startswith(server_data.prefix):
-            sys.stdout.flush()
+        if message.content == server_data.prefix:
             await client.send_message(message.channel, "hey!")
+
+        if message.content == "{0} police".format(server_data.prefix):
+            if message.channel.id in server_data.police_channels:
+                server_data.police_channels.remove(message.channel.id)
+                service.server_data_list.serialize()
+                await client.send_message(message.channel, "police gone 🚓")
+            else:
+                server_data.police_channels.append(message.channel.id)
+                service.server_data_list.serialize()
+                await client.send_message(message.channel, "police active 🚓")
+
+        if message.channel.id in server_data.police_channels:
+
+            # control nadeko shit
+            if message.content == "/o/" or message.content == "\\o\\":
+                await client.delete_message(message)
+
+            # control image posting
+            if self.police_refractory <= 0:
+                matcher = re.match(r"(?:http(?:s)?://)?[a-zA-Z]+\..+", message.content)
+
+                if len(message.attachments) > 0 or matcher:
+                    await client.send_message(message.channel, "do not post images & links here 🚓")
+                    print(message.content)
+                    self.police_refractory += 1
+            else:
+                self.police_refractory -= 1
+            
 
 class ServerData:
     def __init__(self):
         self.server_id = "" # not serialized
         self.prefix = "!vera"
+        self.police_channels = []
 
 class ServerDataList:
 
@@ -44,6 +74,7 @@ class ServerDataList:
             self.list[key] = ServerData()
             self.list[key].server_id = key
             self.list[key].prefix = data[key]["prefix"]
+            self.list[key].police_channels = data[key]["police_channels"]
 
     def serialize(self):
         "save the class"
@@ -55,6 +86,7 @@ class ServerDataList:
             if not id in data:
                 data[id] = {}
             data[id]["prefix"] = self.list[id].prefix
+            data[id]["police_channels"] = self.list[id].police_channels
 
         with open("assets/data.json", "w") as data_file:
             data_file.write(json.dumps(data))
