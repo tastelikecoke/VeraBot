@@ -44,7 +44,7 @@ class ServerDataManager:
 
             # control image posting
             if self.police_refractory <= 0:
-                matcher = re.search(r"(?:http(?:s)?://)[a-zA-Z]+/", message.content)
+                matcher = re.search(r"(?:http(?:s)?://)..+", message.content)
 
                 for flammable_message in self.flammable_messages:
                     try:
