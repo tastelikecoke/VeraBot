@@ -13,6 +13,15 @@ class ServerDataManager:
     async def ask(self, server_data, client, service, message):
         if message.content == server_data.prefix:
             await client.send_message(message.channel, "hey!")
+        
+        if message.content == "{0} die".format(server_data.prefix):
+            if message.author.name == "tastelikenyan":
+                await client.send_message(message.channel, "bye 🚓")
+                waiting = await client.logout()
+                sys.exit()
+            else:
+                await client.send_message(message.channel, "no")
+
 
         if message.content == "{0} police".format(server_data.prefix):
             if message.channel.id in server_data.police_channels:
@@ -28,20 +37,26 @@ class ServerDataManager:
 
             # control nadeko shit
             if message.content == "/o/" or message.content == "\\o\\":
-                await client.delete_message(message)
+                try:
+                    await client.delete_message(message)
+                except discord.errors.NotFound:
+                    pass
 
             # control image posting
             if self.police_refractory <= 0:
-                matcher = re.search(r"(?:http(?:s)?://)[a-zA-Z]+\..+", message.content)
+                matcher = re.search(r"(?:http(?:s)?://)[a-zA-Z]+/", message.content)
 
                 for flammable_message in self.flammable_messages:
-                    await client.delete_message(flammable_message)
+                    try:
+                        await client.delete_message(flammable_message)
+                    except discord.errors.NotFound:
+                        pass
                 self.flammable_messages = []
 
                 if len(message.attachments) > 0 or matcher:
                     new_message = await client.send_message(message.channel, "do not post images & links here 🚓")
                     self.flammable_messages.append(new_message)
-                    self.police_refractory += 9
+                    self.police_refractory += 13
             else:
                 self.police_refractory -= 1
 
