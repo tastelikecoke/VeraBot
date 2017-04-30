@@ -8,6 +8,7 @@ import os.path
 class ServerDataManager:
     def __init__(self):
         self.police_refractory = 0
+        self.flammable_messages = []
 
     async def ask(self, server_data, client, service, message):
         if message.content == server_data.prefix:
@@ -31,11 +32,16 @@ class ServerDataManager:
 
             # control image posting
             if self.police_refractory <= 0:
-                matcher = re.match(r"(?:http(?:s)?://)?[a-zA-Z]+\..+", message.content)
+                matcher = re.search(r"(?:http(?:s)?://)[a-zA-Z]+\..+", message.content)
+
+                for flammable_message in self.flammable_messages:
+                    await client.delete_message(flammable_message)
+                self.flammable_messages = []
 
                 if len(message.attachments) > 0 or matcher:
-                    await client.send_message(message.channel, "do not post images & links here 🚓")
-                    self.police_refractory += 1
+                    new_message = await client.send_message(message.channel, "do not post images & links here 🚓")
+                    self.flammable_messages.append(new_message)
+                    self.police_refractory += 9
             else:
                 self.police_refractory -= 1
 
