@@ -14,6 +14,12 @@ class ServerDataManager:
         if message.content == server_data.prefix:
             await client.send_message(message.channel, "hello de gozaru!")
 
+        
+        if message.content == "{0} help".format(server_data.prefix):
+            await client.send_message(message.channel,\
+                "Vera Bot only has three commands.\n !vera, !vera police, and !vera martial."\
+            )
+
         if message.content == "{0} die".format(server_data.prefix):
             if message.author.name == "tastelikenyan":
                 await client.send_message(message.channel, "bye de gozaru🚓")
@@ -24,7 +30,7 @@ class ServerDataManager:
 
         if message.content == "{0} police".format(server_data.prefix):
             if True not in map(lambda x: x.name == "Vera Bot", message.author.roles):
-                await client.send_message(message.channel, "You don't own me de gozaru🚓")
+                await client.send_message(message.channel, "You don't own me de gozaru🚓 get the Vera Bot role first")
                 return
             if message.channel.id in server_data.police_channels:
                 server_data.police_channels.remove(message.channel.id)
@@ -39,7 +45,7 @@ class ServerDataManager:
         
         if message.content == "{0} martial".format(server_data.prefix):
             if True not in map(lambda x: x.name == "Vera Bot", message.author.roles):
-                await client.send_message(message.channel, "You don't own me de gozaru🚓")
+                await client.send_message(message.channel, "You don't own me de gozaru🚓 get the Vera Bot role first")
                 return
             server_data.militancy = not server_data.militancy
             service.server_data_list.serialize()
