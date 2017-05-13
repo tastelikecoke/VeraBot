@@ -12,39 +12,52 @@ class ServerDataManager:
 
     async def ask(self, server_data, client, service, message):
         if message.content == server_data.prefix:
-            await client.send_message(message.channel, "hey!")
-        
+            await client.send_message(message.channel, "hello de gozaru!")
+
         if message.content == "{0} die".format(server_data.prefix):
             if message.author.name == "tastelikenyan":
-                await client.send_message(message.channel, "bye 🚓")
+                await client.send_message(message.channel, "bye de gozaru🚓")
                 waiting = await client.logout()
                 sys.exit()
             else:
-                await client.send_message(message.channel, "no")
-
+                await client.send_message(message.channel, "no de gozaru")
 
         if message.content == "{0} police".format(server_data.prefix):
+            if True not in map(lambda x: x.name == "Vera Bot", message.author.roles):
+                await client.send_message(message.channel, "You don't own me de gozaru🚓")
+                return
             if message.channel.id in server_data.police_channels:
                 server_data.police_channels.remove(message.channel.id)
+                self.police_refractory = 0
                 service.server_data_list.serialize()
-                await client.send_message(message.channel, "police gone 🚓")
+                await client.send_message(message.channel, "police gone de gozaru🚓")
             else:
+                self.police_refractory = 0
                 server_data.police_channels.append(message.channel.id)
                 service.server_data_list.serialize()
-                await client.send_message(message.channel, "police active 🚓")
+                await client.send_message(message.channel, "police active de gozaru🚓")
+        
+        if message.content == "{0} martial".format(server_data.prefix):
+            if True not in map(lambda x: x.name == "Vera Bot", message.author.roles):
+                await client.send_message(message.channel, "You don't own me de gozaru🚓")
+                return
+            server_data.militancy = not server_data.militancy
+            service.server_data_list.serialize()
+            if server_data.militancy:
+                await client.send_message(message.channel, "ok, will be deleting messages de gozaru🚓")
+            else:
+                await client.send_message(message.channel, "ok, won't be deleting messages de gozaru🚓")
 
         if message.channel.id in server_data.police_channels:
 
-            # control nadeko shit
-            if message.content == "/o/" or message.content == "\\o\\":
-                try:
-                    await client.delete_message(message)
-                except discord.errors.NotFound:
-                    pass
+            matcher = re.search(r"(?:http(?:s)?://)..+", message.content)
 
+            # if militancy is active
+            if (len(message.attachments) > 0 or matcher) and server_data.militancy:
+                await client.send_message(message.author, "do not post images & links. You have been warned.🚓")
+                await client.delete_message(message)
             # control image posting
-            if self.police_refractory <= 0:
-                matcher = re.search(r"(?:http(?:s)?://)..+", message.content)
+            elif self.police_refractory <= 0:
 
                 for flammable_message in self.flammable_messages:
                     try:
@@ -54,7 +67,7 @@ class ServerDataManager:
                 self.flammable_messages = []
 
                 if len(message.attachments) > 0 or matcher:
-                    new_message = await client.send_message(message.channel, "do not post images & links here 🚓")
+                    new_message = await client.send_message(message.channel, "do not post images & links in {0} 🚓 post in #multimedia-links instead".format(message.channel.name))
                     self.flammable_messages.append(new_message)
                     self.police_refractory += 13
             else:
@@ -65,6 +78,8 @@ class ServerData:
         self.server_id = "" # not serialized
         self.prefix = "!vera"
         self.police_channels = []
+        self.demerits = {}
+        self.militancy = True
 
 class ServerDataList:
 
@@ -92,8 +107,13 @@ class ServerDataList:
         for key in data:
             self.list[key] = ServerData()
             self.list[key].server_id = key
-            self.list[key].prefix = data[key]["prefix"]
-            self.list[key].police_channels = data[key]["police_channels"]
+            try:
+                self.list[key].prefix = data[key]["prefix"]
+                self.list[key].militancy = data[key]["militancy"]
+                self.list[key].demerits = data[key]["demerits"]
+                self.list[key].police_channels = data[key]["police_channels"]
+            except KeyError:
+                pass
 
     def serialize(self):
         "save the class"
@@ -106,6 +126,8 @@ class ServerDataList:
                 data[id] = {}
             data[id]["prefix"] = self.list[id].prefix
             data[id]["police_channels"] = self.list[id].police_channels
+            data[id]["militancy"] = self.list[id].militancy
+            data[id]["demerits"] = self.list[id].demerits
 
         with open("assets/data.json", "w") as data_file:
             data_file.write(json.dumps(data))
