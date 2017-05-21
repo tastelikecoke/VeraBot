@@ -28,6 +28,20 @@ class ServerDataManager:
             else:
                 await client.send_message(message.channel, "no de gozaru")
 
+
+        if message.content.startswith("{0} embody".format(server_data.prefix)):
+            if True not in map(lambda x: x.name == "Vera Bot", message.author.roles):
+                await client.send_message(message.channel,\
+                    "You don't own me de gozaru🚓 get the Vera Bot role first")
+                return
+            else:
+                embodiment = message.content[len("{0} embody".format(server_data.prefix)):]
+                if len(embodiment) > 0:
+                    await client.send_message(message.channel,\
+                        embodiment)
+                await client.delete_message(message)
+
+
         if message.content == "{0} police".format(server_data.prefix):
             if True not in map(lambda x: x.name == "Vera Bot", message.author.roles):
                 await client.send_message(message.channel,\
@@ -173,7 +187,8 @@ class PrivateManager:
             announcement = matcher.group(1)
             for data in service.server_data_list.list.values():
                 for channel in data.police_channels:
-                    await client.send_message(client.get_channel(channel), announcement)
+                    if len(announcement) > 0:
+                        await client.send_message(client.get_channel(channel), announcement)
 class Secret:
     def __init__(self):
         self.token = ""
