@@ -21,7 +21,7 @@ class ServerDataManager:
             )
 
         if message.content == "{0} die".format(server_data.prefix):
-            if message.author.name == "tastelikenyan":
+            if message.author.name in ["tastelikenyan", "Rat", "Azel", "Shepy"]:
                 await client.send_message(message.channel, "bye de gozaru🚓")
                 waiting = await client.logout()
                 sys.exit()
