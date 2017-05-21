@@ -85,12 +85,12 @@ class ServerDataManager:
                     await client.add_reaction(message, "🚓")
                     await client.send_message(message.channel,\
                         "🚓 stop, this is the loli police de gozaru 🚓")
-                    self.loli_refractory += 224
+                    self.loli_refractory += 25
                 if oppai_matcher:
                     await client.add_reaction(message, "🚓")
                     await client.send_message(message.channel,\
                         "🚓 stop, this is the shit taste police de gozaru 🚓")
-                    self.loli_refractory += 224
+                    self.loli_refractory += 25
 
             else:
                 self.loli_refractory -= 1
