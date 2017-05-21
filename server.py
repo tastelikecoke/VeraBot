@@ -8,13 +8,13 @@ import os.path
 class ServerDataManager:
     def __init__(self):
         self.police_refractory = 0
+        self.loli_refractory = 0
         self.flammable_messages = []
 
     async def ask(self, server_data, client, service, message):
         if message.content == server_data.prefix:
             await client.send_message(message.channel, "hello de gozaru!")
 
-        
         if message.content == "{0} help".format(server_data.prefix):
             await client.send_message(message.channel,\
                 "Vera Bot only has three commands.\n !vera, !vera police, and !vera martial."\
@@ -63,6 +63,23 @@ class ServerDataManager:
         if message.channel.id in server_data.police_channels:
 
             matcher = re.search(r"(?:http(?:s)?://)..+", message.content)
+            loli_matcher = re.search(r".*I .*loli.*", message.content)
+            oppai_matcher = re.search(r".*oppai.*loli.*", message.content)
+
+            if self.loli_refractory <= 0:
+                if loli_matcher:
+                    await client.add_reaction(message, "🚓")
+                    await client.send_message(message.channel,\
+                        "🚓 stop, this is the loli police de gozaru 🚓")
+                    self.loli_refractory += 224
+                if oppai_matcher:
+                    await client.add_reaction(message, "🚓")
+                    await client.send_message(message.channel,\
+                        "🚓 stop, this is the shit taste police de gozaru 🚓")
+                    self.loli_refractory += 224
+
+            else:
+                self.loli_refractory -= 1
 
             # if militancy is active
             if (len(message.attachments) > 0 or matcher) and server_data.militancy:
@@ -71,7 +88,6 @@ class ServerDataManager:
                 await client.delete_message(message)
             # control image posting
             elif self.police_refractory <= 0:
-
                 for flammable_message in self.flammable_messages:
                     try:
                         await client.delete_message(flammable_message)
@@ -80,6 +96,7 @@ class ServerDataManager:
                 self.flammable_messages = []
 
                 if len(message.attachments) > 0 or matcher:
+                    await client.add_reaction(message, "🚓")
                     new_message = await client.send_message(message.channel,\
                         "<@{0}> do not post images & links in {1} 🚓 post in #multimedia-links instead".format(
                             message.author.id, message.channel.name))
