@@ -40,7 +40,7 @@ class ServerDataManager:
             quote = matcher.group(2)
             if author not in server_data.quotes:
                 server_data.quotes[author] = {}
-            discriminant = max([0,] + list(map(lambda x: int(x), list(server_data.quotes[author].keys())))) + 1
+            discriminant = str(max([0,] + list(map(lambda x: int(x), list(server_data.quotes[author].keys())))) + 1)
             server_data.quotes[author][discriminant] = quote
             service.server_data_list.serialize()
 
@@ -57,12 +57,11 @@ class ServerDataManager:
 
             author = matcher.group(1).lower()
             discriminant = matcher.group(2)
-
             quote = ""
             if author in server_data.quotes:
                 if discriminant in server_data.quotes[author]:
                     quote = server_data.quotes[author][discriminant]
-                    server_data.quotes[author].remove(discriminant)
+                    server_data.quotes[author].pop(discriminant)
 
             if quote == "":
                 await client.send_message(message.channel,\
@@ -85,10 +84,9 @@ class ServerDataManager:
 
                 quote = ""
                 if author in server_data.quotes:
-                    author_quotes = server_data.quotes[author]
-                    if discriminant in author_quotes:
-                        quote = author_quotes[discriminant]
-            
+                    if discriminant in server_data.quotes[author]:
+                        quote = server_data.quotes[author][discriminant]
+
                 if quote == "":
                     await client.send_message(message.channel,\
                         embed=discord.Embed(title="Not found", description="quote is nonexisting."))
@@ -97,7 +95,7 @@ class ServerDataManager:
                         embed=discord.Embed(
                             title="{0} {1}".format(author, discriminant),
                             description=quote))
-                
+
             elif matcher_auth:
                 author = matcher_auth.group(1).lower()
                 author_quotes = ""
@@ -109,13 +107,12 @@ class ServerDataManager:
                         embed=discord.Embed(
                             title=author,
                             description="person has quotes ranging from {0} to {1}.".format(
-                                min(list(map(lambda x:int(x), author_quotes.keys()))),
-                                max(list(map(lambda x:int(x), author_quotes.keys()))),
+                                min(list(map(lambda x: int(x), author_quotes.keys()))),
+                                max(list(map(lambda x: int(x), author_quotes.keys()))),
                             )
                         )
                     )
             else:
-                
                 await client.send_message(message.channel,\
                     embed=discord.Embed(
                         title="Quotes",
