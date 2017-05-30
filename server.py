@@ -28,6 +28,100 @@ class ServerDataManager:
             else:
                 await client.send_message(message.channel, "no de gozaru")
 
+        if message.content.startswith("!vquote "):
+            matcher = re.search(r"!vquote ([\S]+) ([\s\S]*)", message.content)
+
+            if not matcher:
+                await client.send_message(message.channel,\
+                    embed=discord.Embed(title="Incorrect", description="wrong command."))
+                return
+
+            author = matcher.group(1).lower()
+            quote = matcher.group(2)
+            if author not in server_data.quotes:
+                server_data.quotes[author] = {}
+            discriminant = max([0,] + list(map(lambda x: int(x), list(server_data.quotes[author].keys())))) + 1
+            server_data.quotes[author][discriminant] = quote
+            service.server_data_list.serialize()
+
+            await client.send_message(message.channel,\
+                embed=discord.Embed(title="Quoted \"{0} {1}\"".format(author, discriminant), description=quote))
+
+        if message.content.startswith("!vunquote "):
+            matcher = re.search(r"!vunquote ([\S]+) ([\S]+)", message.content)
+            
+            if not matcher:
+                await client.send_message(message.channel,\
+                    embed=discord.Embed(title="Incorrect", description="wrong command."))
+                return
+
+            author = matcher.group(1).lower()
+            discriminant = matcher.group(2)
+
+            quote = ""
+            if author in server_data.quotes:
+                if discriminant in server_data.quotes[author]:
+                    quote = server_data.quotes[author][discriminant]
+                    server_data.quotes[author].remove(discriminant)
+
+            if quote == "":
+                await client.send_message(message.channel,\
+                    embed=discord.Embed(title="Not found", description="quote is nonexisting."))
+            else:
+                await client.send_message(message.channel,\
+                    embed=discord.Embed(
+                        title="{0} {1} deleted".format(author, discriminant),
+                        description=quote))
+
+            service.server_data_list.serialize()
+
+        if message.content.startswith("!vquoteof"):
+            matcher = re.search(r"!vquoteof ([\S]+) ([\S]+)", message.content)
+            matcher_auth = re.search(r"!vquoteof ([\S]+)", message.content)
+
+            if matcher:
+                author = matcher.group(1).lower()
+                discriminant = matcher.group(2)
+
+                quote = ""
+                if author in server_data.quotes:
+                    author_quotes = server_data.quotes[author]
+                    if discriminant in author_quotes:
+                        quote = author_quotes[discriminant]
+            
+                if quote == "":
+                    await client.send_message(message.channel,\
+                        embed=discord.Embed(title="Not found", description="quote is nonexisting."))
+                else:
+                    await client.send_message(message.channel,\
+                        embed=discord.Embed(
+                            title="{0} {1}".format(author, discriminant),
+                            description=quote))
+                
+            elif matcher_auth:
+                author = matcher_auth.group(1).lower()
+                author_quotes = ""
+
+                if author in server_data.quotes:
+                    author_quotes = server_data.quotes[author]
+                
+                    await client.send_message(message.channel,\
+                        embed=discord.Embed(
+                            title=author,
+                            description="person has quotes ranging from {0} to {1}.".format(
+                                min(list(map(lambda x:int(x), author_quotes.keys()))),
+                                max(list(map(lambda x:int(x), author_quotes.keys()))),
+                            )
+                        )
+                    )
+            else:
+                
+                await client.send_message(message.channel,\
+                    embed=discord.Embed(
+                        title="Quotes",
+                        description="\n".join(server_data.quotes.keys())
+                    )
+                )
 
         if message.content.startswith("{0} embody".format(server_data.prefix)):
             if True not in map(lambda x: x.name == "Vera Bot", message.author.roles):
@@ -124,6 +218,7 @@ class ServerData:
         self.server_id = "" # not serialized
         self.prefix = "!vera"
         self.police_channels = []
+        self.quotes = {}
         self.demerits = {}
         self.militancy = True
 
@@ -158,6 +253,7 @@ class ServerDataList:
                 self.list[key].militancy = data[key]["militancy"]
                 self.list[key].demerits = data[key]["demerits"]
                 self.list[key].police_channels = data[key]["police_channels"]
+                self.list[key].quotes = data[key]["quotes"]
             except KeyError:
                 pass
 
@@ -174,6 +270,7 @@ class ServerDataList:
             data[id]["police_channels"] = self.list[id].police_channels
             data[id]["militancy"] = self.list[id].militancy
             data[id]["demerits"] = self.list[id].demerits
+            data[id]["quotes"] = self.list[id].quotes
 
         with open("assets/data.json", "w") as data_file:
             data_file.write(json.dumps(data))
