@@ -106,12 +106,12 @@ class ServerDataManager:
                     await client.send_message(message.channel,\
                         embed=discord.Embed(
                             title=author,
-                            description="person has quotes ranging from {0} to {1}.".format(
-                                min(list(map(lambda x: int(x), author_quotes.keys()))),
-                                max(list(map(lambda x: int(x), author_quotes.keys()))),
-                            )
+                            description="person has quotes:"+",".join(sorted(author_quotes.keys()))
                         )
                     )
+                else:
+                    await client.send_message(message.channel,\
+                        embed=discord.Embed(title="Not found", description="person is nonexisting."))
             else:
                 await client.send_message(message.channel,\
                     embed=discord.Embed(
