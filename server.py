@@ -9,15 +9,24 @@ class ServerDataManager:
     def __init__(self):
         self.police_refractory = 0
         self.loli_refractory = 0
+        self.thicc_refractory = 0
         self.flammable_messages = []
 
     async def ask(self, server_data, client, service, message):
         if message.content == server_data.prefix:
             await client.send_message(message.channel, "hello de gozaru!")
 
+        if message.content.startswith("{0} critique".format(server_data.prefix)):
+            await client.delete_message(message)
+            await client.send_message(message.channel, "please minimize critiques in #art-channel. other artists might see it as an insult.")
+
+        if message.content.startswith("{0} chitchat".format(server_data.prefix)):
+            await client.delete_message(message)
+            await client.send_message(message.channel, "please minimize chitchat in #art-critique.")
+
         if message.content == "{0} help".format(server_data.prefix):
             await client.send_message(message.channel,\
-                "Vera Bot only has three commands.\n !vera, !vera police, and !vera martial."\
+                "Vera Bot is a moderating bot. I moderate stuff. Don't touch me de gozaru🚓"\
             )
 
         if message.content == "{0} die".format(server_data.prefix):
@@ -49,7 +58,7 @@ class ServerDataManager:
 
         if message.content.startswith("!vunquote "):
             matcher = re.search(r"!vunquote ([\S]+) ([\S]+)", message.content)
-            
+
             if not matcher:
                 await client.send_message(message.channel,\
                     embed=discord.Embed(title="Incorrect", description="wrong command."))
@@ -132,7 +141,6 @@ class ServerDataManager:
                         embodiment)
                 await client.delete_message(message)
 
-
         if message.content == "{0} police".format(server_data.prefix):
             if True not in map(lambda x: x.name == "Vera Bot", message.author.roles):
                 await client.send_message(message.channel,\
@@ -168,8 +176,10 @@ class ServerDataManager:
         if message.channel.id in server_data.police_channels:
 
             matcher = re.search(r"(?:http(?:s)?://)..+", message.content)
-            loli_matcher = re.search(r".*I .*loli.*", message.content)
+            loli_matcher = re.search(r".*I('|.).*loli.*", message.content)
             oppai_matcher = re.search(r".*oppai.*loli.*", message.content)
+            thicc_matcher = re.search(r".*t\s*h\s*i\s*c.*", message.content)
+            magic_matcher = re.search(r".*loli.*gun.*boob.*", message.content)
 
             if self.loli_refractory <= 0:
                 if loli_matcher:
@@ -182,9 +192,21 @@ class ServerDataManager:
                     await client.send_message(message.channel,\
                         "🚓 stop, this is the shit taste police de gozaru 🚓")
                     self.loli_refractory += 25
-
             else:
                 self.loli_refractory -= 1
+            
+            if self.thicc_refractory <= 0:
+                if thicc_matcher:
+                    await client.add_reaction(message, "🚨")
+                    await client.send_message(message.channel,\
+                        "\"ara ara~\" - Meenah Bot")
+                    self.thicc_refractory += 25
+                if magic_matcher:
+                    await client.add_reaction(message, "🚨")
+                    await client.send_message(message.channel,\
+                        "\"I agree~\" - Meenah Bot")
+                    self.thicc_refractory += 25
+
 
             # if militancy is active
             if (len(message.attachments) > 0 or matcher) and server_data.militancy:
@@ -203,7 +225,7 @@ class ServerDataManager:
                 if len(message.attachments) > 0 or matcher:
                     await client.add_reaction(message, "🚓")
                     new_message = await client.send_message(message.channel,\
-                        "<@{0}> do not post images & links in {1} 🚓 post in #multimedia-links instead".format(
+                        "<@{0}> do not post images & links in {1} 🚓 post in #links instead".format(
                             message.author.id, message.channel.name))
                     self.flammable_messages.append(new_message)
                     self.police_refractory += 13
