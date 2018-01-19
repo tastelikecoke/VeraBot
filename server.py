@@ -206,6 +206,8 @@ class ServerDataManager:
                     await client.send_message(message.channel,\
                         "\"I agree~\" - Meenah Bot")
                     self.thicc_refractory += 25
+            else:
+                self.thicc_refractory -= 1
 
 
             # if militancy is active
