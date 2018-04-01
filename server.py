@@ -15,6 +15,8 @@ class ServerDataManager:
     async def ask(self, server_data, client, service, message):
         if message.content == server_data.prefix:
             await client.send_message(message.channel, "hello de gozaru!")
+        if message.content == "mornin!":
+            await client.send_message(message.channel, "Good morning my dear master!")
 
         if message.content.startswith("{0} critique".format(server_data.prefix)):
             await client.delete_message(message)
